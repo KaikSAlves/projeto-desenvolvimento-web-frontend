@@ -42,7 +42,7 @@ const Header = () => {
 
           {/* Botão Admin */}
           <Link 
-            to="/admin" 
+            to="/admin/login" 
             className="hidden md:block bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg transition-colors"
           >
             Admin
@@ -123,7 +123,7 @@ const Header = () => {
               </li>
               <li>
                 <Link
-                  to="/admin"
+                  to="/admin/login"
                   className="block px-4 py-2 text-primary hover:bg-primary hover:text-white rounded-lg transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
