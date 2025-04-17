@@ -60,7 +60,7 @@ const produtos = {
             name: 'Picolé de Açaí',
             description: 'Picolé nutritivo de açaí com granola',
             price: 5.50,
-            image: '/images/picole-acai.jpg',
+            image: '/images/picole-acai.jpeg',
             isHighlight: true
         },
         {
@@ -68,7 +68,7 @@ const produtos = {
             name: 'Picolé de Limão',
             description: 'Refrescante picolé de limão',
             price: 4.00,
-            image: '/images/picole-limao.jpg',
+            image: '/images/picole-limao.jpeg',
             isHighlight: false
         },
         {
@@ -76,7 +76,7 @@ const produtos = {
             name: 'Picolé de Abacaxi',
             description: 'Picolé tropical de abacaxi',
             price: 4.50,
-            image: '/images/picole-abacaxi.jpg',
+            image: '/images/picole-abacaxi.jpeg',
             isHighlight: false
         },
         {
@@ -84,7 +84,7 @@ const produtos = {
             name: 'Picolé de Coco',
             description: 'Picolé cremoso de coco natural',
             price: 4.50,
-            image: '/images/picole-coco.jpg',
+            image: '/images/picole-coco.jpeg',
             isHighlight: true
         },
         {
@@ -92,7 +92,7 @@ const produtos = {
             name: 'Picolé de Chocolate',
             description: 'Picolé cremoso coberto com chocolate',
             price: 5.00,
-            image: '/images/picole-chocolate.jpg',
+            image: '/images/picole-chocolate.jpeg',
             isHighlight: true
         },
         {
@@ -100,7 +100,7 @@ const produtos = {
             name: 'Picolé de Manga',
             description: 'Picolé refrescante de manga',
             price: 4.50,
-            image: '/images/picole-manga.jpg',
+            image: '/images/picole-manga.jpeg',
             isHighlight: false
         },
         {
@@ -108,7 +108,7 @@ const produtos = {
             name: 'Picolé de Maracujá',
             description: 'Picolé refrescante de maracujá',
             price: 4.50,
-            image: '/images/picole-maracuja.jpg',
+            image: '/images/picole-maracuja.jpeg',
             isHighlight: false
         },
         {
@@ -116,7 +116,7 @@ const produtos = {
             name: 'Picolé de Morango',
             description: 'Picolé de morango natural',
             price: 4.50,
-            image: '/images/picole-morango.jpg',
+            image: '/images/picole-morango.jpeg',
             isHighlight: true
         },
         {
@@ -124,7 +124,7 @@ const produtos = {
             name: 'Picolé de Leite Condensado',
             description: 'Picolé cremoso de leite condensado',
             price: 5.00,
-            image: '/images/picole-leite-condensado.jpg',
+            image: '/images/picole-leite-condensado.jpeg',
             isHighlight: true
         }
     ]
