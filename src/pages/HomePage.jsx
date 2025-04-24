@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
 import RatingStars from '../components/RatingStars';
 
@@ -134,6 +134,53 @@ const HomePage = () => {
     const [activeTab, setActiveTab] = useState('geladinhos');
     const [rating, setRating] = useState(0);
     const [feedback, setFeedback] = useState('');
+    const [nome, setNome] = useState('');
+    const [email, setEmail] = useState('');
+    const [feedbackEnviado, setFeedbackEnviado] = useState(false);
+
+    const handleSubmitFeedback = (e) => {
+        e.preventDefault();
+        
+        if (rating === 0) {
+            alert('Por favor, selecione uma avaliação');
+            return;
+        }
+
+        if (!nome.trim()) {
+            alert('Por favor, informe seu nome');
+            return;
+        }
+
+        if (!email.trim()) {
+            alert('Por favor, informe seu email');
+            return;
+        }
+
+        const novoFeedback = {
+            id: Date.now(),
+            nome,
+            email,
+            avaliacao: rating,
+            comentario: feedback,
+            data: new Date().toISOString()
+        };
+
+        // Salva o feedback no localStorage
+        const feedbacksSalvos = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+        localStorage.setItem('feedbacks', JSON.stringify([...feedbacksSalvos, novoFeedback]));
+
+        // Limpa o formulário
+        setRating(0);
+        setFeedback('');
+        setNome('');
+        setEmail('');
+        setFeedbackEnviado(true);
+
+        // Reseta o estado de feedback enviado após 3 segundos
+        setTimeout(() => {
+            setFeedbackEnviado(false);
+        }, 3000);
+    };
 
     return (
         <main className="font-body">
@@ -243,26 +290,61 @@ const HomePage = () => {
                         Sua Opinião
                     </h2>
                     <div className="max-w-lg mx-auto bg-white rounded-xl shadow-lg p-8">
-                        <form className="space-y-6">
+                        <form onSubmit={handleSubmitFeedback} className="space-y-6">
                             <div className="flex flex-col items-center">
                                 <label className="mb-4 text-lg font-semibold">Avalie nossos produtos</label>
                                 <RatingStars rating={rating} setRating={setRating} />
                             </div>
+
                             <div>
-                                <label className="block mb-2 text-lg font-semibold">Comentário (opcional)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Nome
+                                </label>
+                                <input
+                                    type="text"
+                                    value={nome}
+                                    onChange={(e) => setNome(e.target.value)}
+                                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Comentário (opcional)
+                                </label>
                                 <textarea
                                     value={feedback}
                                     onChange={(e) => setFeedback(e.target.value)}
-                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
                                     rows="4"
-                                    placeholder="Conte-nos sua experiência..."
                                 />
                             </div>
+
+                            {feedbackEnviado && (
+                                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                                    Obrigado pelo seu feedback!
+                                </div>
+                            )}
+
                             <button
                                 type="submit"
-                                className="w-full bg-primary hover:bg-secondary text-white py-3 rounded-lg transition-all duration-300 transform hover:scale-105 font-semibold text-lg"
+                                className="w-full bg-primary hover:bg-secondary text-white py-2 rounded-lg transition-colors"
                             >
-                                Enviar Avaliação
+                                Enviar Feedback
                             </button>
                         </form>
                     </div>

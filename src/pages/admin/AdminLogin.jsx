@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaArrowLeft } from 'react-icons/fa';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -30,6 +31,15 @@ export default function AdminLogin() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        {/* Botão Voltar */}
+        <button
+          onClick={() => navigate('/')}
+          className="mb-4 bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-700 transition-colors"
+        >
+          <FaArrowLeft />
+          Voltar à Página Inicial
+        </button>
+
         <h1 className="text-2xl font-bold text-center mb-6">Login Administrativo</h1>
         
         {erro && (

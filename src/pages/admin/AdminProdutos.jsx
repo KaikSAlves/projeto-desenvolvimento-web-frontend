@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { FaEdit, FaTrash, FaPlus, FaArrowLeft } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const mockProdutos = [
   { id: 101, tipo: 'Geladinho', sabor: 'Morango', descricao: 'Geladinho sabor morango', valor: 2.50 },
@@ -7,8 +8,17 @@ const mockProdutos = [
   { id: 201, tipo: 'Picolé', sabor: 'Limão', descricao: 'Picolé sabor limão', valor: 3.00 },
 ];
 
+const saboresPorTipo = {
+  Geladinho: ['Morango', 'Chocolate', 'Uva', 'Coco', 'Abacaxi'],
+  Picolé: ['Limão', 'Morango', 'Chocolate', 'Coco', 'Abacaxi', 'Maracujá']
+};
+
 export default function AdminProdutos() {
-  const [produtos, setProdutos] = useState(mockProdutos);
+  const navigate = useNavigate();
+  const [produtos, setProdutos] = useState(() => {
+    const produtosSalvos = localStorage.getItem('produtos');
+    return produtosSalvos ? JSON.parse(produtosSalvos) : mockProdutos;
+  });
   const [filtros, setFiltros] = useState({
     idProduto: '',
     sabor: '',
@@ -23,6 +33,11 @@ export default function AdminProdutos() {
     valor: ''
   });
 
+  // Atualiza o localStorage sempre que os produtos mudarem
+  useEffect(() => {
+    localStorage.setItem('produtos', JSON.stringify(produtos));
+  }, [produtos]);
+
   const handleFiltroChange = (e) => {
     const { name, value } = e.target;
     setFiltros(prev => ({ ...prev, [name]: value }));
@@ -30,7 +45,15 @@ export default function AdminProdutos() {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'tipo') {
+      setFormData(prev => ({
+        ...prev,
+        tipo: value,
+        sabor: '' // Limpa o sabor quando o tipo muda
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleEditar = (produto) => {
@@ -95,6 +118,15 @@ export default function AdminProdutos() {
 
   return (
     <div className="p-6">
+      {/* Botão Voltar */}
+      <button
+        onClick={() => navigate('/')}
+        className="mb-4 bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-700 transition-colors"
+      >
+        <FaArrowLeft />
+        Voltar à Página Inicial
+      </button>
+
       {/* Filtros */}
       <div className="bg-white p-4 rounded-lg shadow mb-6">
         <div className="grid grid-cols-3 gap-4">
@@ -226,21 +258,26 @@ export default function AdminProdutos() {
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
                     required
                   >
-                    <option value="">Selecione</option>
+                    <option value="">Selecione um tipo</option>
                     <option value="Geladinho">Geladinho</option>
                     <option value="Picolé">Picolé</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Sabor</label>
-                  <input
-                    type="text"
+                  <select
                     name="sabor"
                     value={formData.sabor}
                     onChange={handleFormChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
                     required
-                  />
+                    disabled={!formData.tipo}
+                  >
+                    <option value="">Selecione um sabor</option>
+                    {formData.tipo && saboresPorTipo[formData.tipo].map(sabor => (
+                      <option key={sabor} value={sabor}>{sabor}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Descrição</label>
@@ -249,7 +286,6 @@ export default function AdminProdutos() {
                     value={formData.descricao}
                     onChange={handleFormChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
-                    rows="3"
                     required
                   />
                 </div>
@@ -258,19 +294,20 @@ export default function AdminProdutos() {
                   <input
                     type="number"
                     name="valor"
-                    step="0.01"
                     value={formData.valor}
                     onChange={handleFormChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
                     required
+                    min="0"
+                    step="0.01"
                   />
                 </div>
               </div>
-              <div className="mt-6 flex justify-end gap-4">
+              <div className="mt-6 flex justify-end space-x-4">
                 <button
                   type="button"
                   onClick={handleCancelar}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
                   Cancelar
                 </button>
@@ -278,7 +315,7 @@ export default function AdminProdutos() {
                   type="submit"
                   className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
                 >
-                  {produtoEditando ? 'Salvar' : 'Adicionar'}
+                  Salvar
                 </button>
               </div>
             </form>

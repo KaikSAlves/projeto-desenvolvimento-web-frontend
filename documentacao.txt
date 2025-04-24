@@ -1,0 +1,77 @@
+DOCUMENTAÇÃO DO PROJETO GELADINHO & PICOLÉ
+
+1. ESTRUTURA DO PROJETO
+----------------------
+O projeto é uma aplicação web moderna construída com React e utiliza uma arquitetura baseada em componentes. A estrutura principal inclui:
+
+- Páginas públicas (HomePage)
+- Área administrativa protegida
+- Sistema de rotas
+- Componentes reutilizáveis
+- Estilização com Tailwind CSS
+
+2. TECNOLOGIAS UTILIZADAS
+------------------------
+- React 19.1.0 (Framework principal)
+- React Router DOM 7.5.0 (Gerenciamento de rotas)
+- Vite 6.2.6 (Build tool e servidor de desenvolvimento)
+- Tailwind CSS 3.4.3 (Framework de estilização)
+- React Icons 5.5.0 (Biblioteca de ícones)
+
+3. ESTRUTURA DE ARQUIVOS
+-----------------------
+- /src
+  - /components (Componentes reutilizáveis)
+  - /pages (Páginas da aplicação)
+    - /admin (Páginas administrativas)
+  - /assets (Recursos estáticos)
+  - App.jsx (Componente principal)
+  - main.jsx (Ponto de entrada)
+  - index.css (Estilos globais)
+
+4. FUNCIONALIDADES PRINCIPAIS
+---------------------------
+- Sistema de autenticação para área administrativa
+- Gerenciamento de estoque
+- Gerenciamento de produtos
+- Sistema de feedbacks
+- Interface responsiva
+- Navegação protegida para área administrativa
+
+5. ESTILIZAÇÃO
+-------------
+- Utilização do Tailwind CSS para estilização
+- Tema personalizado com cores específicas:
+  - Primary: #FF0000 (Vermelho)
+  - Secondary: #FF3333 (Vermelho mais claro)
+  - Summer: #FFD700 (Amarelo)
+- Fontes personalizadas:
+  - Playfair Display (para títulos)
+  - Poppins (para texto geral)
+- Efeitos de sombra de texto personalizados
+
+6. SEGURANÇA
+-----------
+- Proteção de rotas administrativas
+- Autenticação baseada em localStorage
+- Redirecionamento automático para login quando necessário
+
+7. DEPENDÊNCIAS DE DESENVOLVIMENTO
+--------------------------------
+- @vitejs/plugin-react
+- autoprefixer
+- postcss
+- tailwindcss
+
+8. COMANDOS DISPONÍVEIS
+----------------------
+- npm run dev: Inicia o servidor de desenvolvimento
+- npm run build: Gera a versão de produção
+- npm run preview: Previsualiza a versão de produção
+
+9. OBSERVAÇÕES
+-------------
+- O projeto utiliza uma abordagem moderna de desenvolvimento web
+- Implementa boas práticas de segurança
+- Segue princípios de design responsivo
+- Utiliza as últimas versões das principais bibliotecas 

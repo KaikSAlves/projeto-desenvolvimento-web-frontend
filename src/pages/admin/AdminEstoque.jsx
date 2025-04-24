@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 
 const mockProdutos = [
@@ -35,7 +35,10 @@ const mockEstoques = [
 ];
 
 export default function AdminEstoque() {
-  const [estoques, setEstoques] = useState(mockEstoques);
+  const [estoques, setEstoques] = useState(() => {
+    const estoquesSalvos = localStorage.getItem('estoques');
+    return estoquesSalvos ? JSON.parse(estoquesSalvos) : mockEstoques;
+  });
   const [filtros, setFiltros] = useState({
     idEstoque: '',
     produtoId: '',
@@ -50,6 +53,11 @@ export default function AdminEstoque() {
     minimo: '',
     dataAtualizacao: ''
   });
+
+  // Atualiza o localStorage sempre que os estoques mudarem
+  useEffect(() => {
+    localStorage.setItem('estoques', JSON.stringify(estoques));
+  }, [estoques]);
 
   const handleFiltroChange = (e) => {
     const { name, value } = e.target;
@@ -114,18 +122,11 @@ export default function AdminEstoque() {
     
     if (estoqueEditando) {
       setEstoques(prev => prev.map(e => 
-        e.id === estoqueEditando.id 
-          ? { ...e, ...formData, quantidade: parseInt(formData.quantidade), minimo: parseInt(formData.minimo) }
-          : e
+        e.id === estoqueEditando.id ? { ...formData, id: estoqueEditando.id } : e
       ));
     } else {
-      const novoEstoque = {
-        id: estoques.length > 0 ? Math.max(...estoques.map(e => e.id)) + 1 : 1,
-        ...formData,
-        quantidade: parseInt(formData.quantidade),
-        minimo: parseInt(formData.minimo)
-      };
-      setEstoques(prev => [...prev, novoEstoque]);
+      const novoId = Math.max(...estoques.map(e => e.id), 0) + 1;
+      setEstoques(prev => [...prev, { ...formData, id: novoId }]);
     }
 
     setModalAberto(false);

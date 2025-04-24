@@ -1,32 +1,21 @@
-import { useState } from 'react';
-import { FaStar, FaTrash } from 'react-icons/fa';
-
-const mockFeedbacks = [
-  {
-    id: 1,
-    nome: 'João Silva',
-    email: 'joao@email.com',
-    avaliacao: 5,
-    comentario: 'Os geladinhos são deliciosos!',
-    data: '2024-03-20'
-  },
-  {
-    id: 2,
-    nome: 'Maria Santos',
-    email: 'maria@email.com',
-    avaliacao: 4,
-    comentario: 'Gostei muito, mas poderia ter mais variedade de sabores.',
-    data: '2024-03-19'
-  }
-];
+import { useState, useEffect } from 'react';
+import { FaStar, FaTrash, FaArrowLeft } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 export default function AdminFeedbacks() {
-  const [feedbacks, setFeedbacks] = useState(mockFeedbacks);
+  const navigate = useNavigate();
+  const [feedbacks, setFeedbacks] = useState([]);
   const [filtros, setFiltros] = useState({
     nome: '',
     email: '',
     avaliacao: ''
   });
+
+  // Carrega os feedbacks do localStorage ao montar o componente
+  useEffect(() => {
+    const feedbacksSalvos = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+    setFeedbacks(feedbacksSalvos);
+  }, []);
 
   const handleFiltroChange = (e) => {
     const { name, value } = e.target;
@@ -34,11 +23,30 @@ export default function AdminFeedbacks() {
   };
 
   const handleDeletar = (id) => {
-    setFeedbacks(prev => prev.filter(f => f.id !== id));
+    const feedbacksAtualizados = feedbacks.filter(f => f.id !== id);
+    setFeedbacks(feedbacksAtualizados);
+    localStorage.setItem('feedbacks', JSON.stringify(feedbacksAtualizados));
   };
+
+  // Filtra os feedbacks com base nos filtros selecionados
+  const feedbacksFiltrados = feedbacks.filter(feedback => {
+    const nomeMatch = feedback.nome.toLowerCase().includes(filtros.nome.toLowerCase());
+    const emailMatch = feedback.email.toLowerCase().includes(filtros.email.toLowerCase());
+    const avaliacaoMatch = filtros.avaliacao === '' || feedback.avaliacao === parseInt(filtros.avaliacao);
+    return nomeMatch && emailMatch && avaliacaoMatch;
+  });
 
   return (
     <div className="p-6">
+      {/* Botão Voltar */}
+      <button
+        onClick={() => navigate('/')}
+        className="mb-4 bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-700 transition-colors"
+      >
+        <FaArrowLeft />
+        Voltar à Página Inicial
+      </button>
+
       {/* Filtros */}
       <div className="bg-white p-4 rounded-lg shadow mb-6">
         <div className="grid grid-cols-3 gap-4">
@@ -97,7 +105,7 @@ export default function AdminFeedbacks() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {feedbacks.map((feedback) => (
+            {feedbacksFiltrados.map((feedback) => (
               <tr key={feedback.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{feedback.nome}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{feedback.email}</td>
