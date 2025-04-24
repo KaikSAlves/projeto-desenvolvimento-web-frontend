@@ -6,8 +6,6 @@ export default function AdminFeedbacks() {
   const navigate = useNavigate();
   const [feedbacks, setFeedbacks] = useState([]);
   const [filtros, setFiltros] = useState({
-    nome: '',
-    email: '',
     avaliacao: ''
   });
 
@@ -30,10 +28,8 @@ export default function AdminFeedbacks() {
 
   // Filtra os feedbacks com base nos filtros selecionados
   const feedbacksFiltrados = feedbacks.filter(feedback => {
-    const nomeMatch = feedback.nome.toLowerCase().includes(filtros.nome.toLowerCase());
-    const emailMatch = feedback.email.toLowerCase().includes(filtros.email.toLowerCase());
     const avaliacaoMatch = filtros.avaliacao === '' || feedback.avaliacao === parseInt(filtros.avaliacao);
-    return nomeMatch && emailMatch && avaliacaoMatch;
+    return avaliacaoMatch;
   });
 
   return (
@@ -49,29 +45,7 @@ export default function AdminFeedbacks() {
 
       {/* Filtros */}
       <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-            <input
-              type="text"
-              name="nome"
-              value={filtros.nome}
-              onChange={handleFiltroChange}
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
-              placeholder="Digite o nome"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="text"
-              name="email"
-              value={filtros.email}
-              onChange={handleFiltroChange}
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
-              placeholder="Digite o email"
-            />
-          </div>
+        <div className="grid grid-cols-1 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Avaliação</label>
             <select
@@ -96,8 +70,6 @@ export default function AdminFeedbacks() {
         <table className="min-w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avaliação</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comentário</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
@@ -107,8 +79,6 @@ export default function AdminFeedbacks() {
           <tbody className="bg-white divide-y divide-gray-200">
             {feedbacksFiltrados.map((feedback) => (
               <tr key={feedback.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{feedback.nome}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{feedback.email}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (

@@ -134,8 +134,6 @@ const HomePage = () => {
     const [activeTab, setActiveTab] = useState('geladinhos');
     const [rating, setRating] = useState(0);
     const [feedback, setFeedback] = useState('');
-    const [nome, setNome] = useState('');
-    const [email, setEmail] = useState('');
     const [feedbackEnviado, setFeedbackEnviado] = useState(false);
 
     const handleSubmitFeedback = (e) => {
@@ -146,20 +144,8 @@ const HomePage = () => {
             return;
         }
 
-        if (!nome.trim()) {
-            alert('Por favor, informe seu nome');
-            return;
-        }
-
-        if (!email.trim()) {
-            alert('Por favor, informe seu email');
-            return;
-        }
-
         const novoFeedback = {
             id: Date.now(),
-            nome,
-            email,
             avaliacao: rating,
             comentario: feedback,
             data: new Date().toISOString()
@@ -172,8 +158,6 @@ const HomePage = () => {
         // Limpa o formulário
         setRating(0);
         setFeedback('');
-        setNome('');
-        setEmail('');
         setFeedbackEnviado(true);
 
         // Reseta o estado de feedback enviado após 3 segundos
@@ -294,32 +278,6 @@ const HomePage = () => {
                             <div className="flex flex-col items-center">
                                 <label className="mb-4 text-lg font-semibold">Avalie nossos produtos</label>
                                 <RatingStars rating={rating} setRating={setRating} />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Nome
-                                </label>
-                                <input
-                                    type="text"
-                                    value={nome}
-                                    onChange={(e) => setNome(e.target.value)}
-                                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Email
-                                </label>
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
-                                    required
-                                />
                             </div>
 
                             <div>
