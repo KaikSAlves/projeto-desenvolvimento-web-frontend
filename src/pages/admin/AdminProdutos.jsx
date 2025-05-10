@@ -7,9 +7,9 @@ export default function AdminProdutos() {
   const navigate = useNavigate();
   const [produtos, setProdutos] = useState([]);
   const [filtros, setFiltros] = useState({
-    id_produto: '',
-    sabor_produto: '',
-    tipo_produto: ''
+    id: '',
+    sabor: '',
+    tipo: ''
   });
 
   const [modalAberto, setModalAberto] = useState(false);
@@ -21,7 +21,6 @@ export default function AdminProdutos() {
     valor_produto: ''
   });
 
-  // Atualiza o localStorage sempre que os produtos mudarem
   useEffect(() => {
     async function carregarProdutos() {
       const response = await ax.get('http://localhost:8080/produto');
@@ -121,9 +120,12 @@ export default function AdminProdutos() {
 
 
   const produtosFiltrados = produtos.filter(produtos => {
-    const avaliacaoMatch = filtros.id_produto === produtos.id_produto || filtros.id_produto === '' || 
-    filtros.sabor_produto === produtos.sabor_produto || filtros.sabor_produto === ''  ||
-    filtros.tipo_produto === produtos.tipo_produto || filtros.tipo_produto === '';
+    // Filtra os produtos com base nos filtros selecionados
+    const saborMatch = filtros.sabor === '' || produtos.sabor_produto.toLowerCase().includes(filtros.sabor.toLowerCase());
+    const tipoMatch = filtros.tipo === '' || produtos.tipo_produto === filtros.tipo;
+    const idMatch = filtros.id === '' || parseInt(filtros.id) === produtos.id_produto;
+    const avaliacaoMatch = idMatch && saborMatch && tipoMatch;
+    
     return avaliacaoMatch;
   });
 
@@ -145,8 +147,8 @@ export default function AdminProdutos() {
             <label className="block text-sm font-medium text-gray-700 mb-1">ID Produto</label>
             <input
               type="text"
-              name="id_produto"
-              value={filtros.id_produto}
+              name="id"
+              value={filtros.id}
               onChange={handleFiltroChange}
               className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
               placeholder="Digite o ID"
@@ -156,8 +158,8 @@ export default function AdminProdutos() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Sabor</label>
             <input
               type="text"
-              name="sabor_produto"
-              value={filtros.sabor_produto}
+              name="sabor"
+              value={filtros.sabor}
               onChange={handleFiltroChange}
               className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
               placeholder="Digite o sabor"
@@ -166,8 +168,8 @@ export default function AdminProdutos() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
             <select
-              name="tipo_produto"
-              value={filtros.tipo_produto}
+              name="tipo"
+              value={filtros.tipo}
               onChange={handleFiltroChange}
               className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
             >
