@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
 import RatingStars from '../components/RatingStars';
+import ax from 'axios'; 
 
 // Definindo os produtos FORA do componente
 const produtos = {
@@ -136,7 +137,7 @@ const HomePage = () => {
     const [feedback, setFeedback] = useState('');
     const [feedbackEnviado, setFeedbackEnviado] = useState(false);
 
-    const handleSubmitFeedback = (e) => {
+    const handleSubmitFeedback = async (e) => {
         e.preventDefault();
         
         if (rating === 0) {
@@ -145,20 +146,22 @@ const HomePage = () => {
         }
 
         const novoFeedback = {
-            id: Date.now(),
-            avaliacao: rating,
-            comentario: feedback,
-            data: new Date().toISOString()
+            data_feedback: new Date().toISOString().slice(0, 19).replace('T', ' '),
+            nvl_avaliacao_feedback: rating,
+            descricao_feedback: feedback
         };
 
-        // Salva o feedback no localStorage
-        const feedbacksSalvos = JSON.parse(localStorage.getItem('feedbacks') || '[]');
-        localStorage.setItem('feedbacks', JSON.stringify([...feedbacksSalvos, novoFeedback]));
+        let response = await ax.post('http://localhost:8080/feedback', novoFeedback);
 
         // Limpa o formulário
         setRating(0);
         setFeedback('');
-        setFeedbackEnviado(true);
+
+        if(response.status === 200) {
+            setFeedbackEnviado(true);
+        }else{
+            setFeedbackEnviado(false);
+        }
 
         // Reseta o estado de feedback enviado após 3 segundos
         setTimeout(() => {
