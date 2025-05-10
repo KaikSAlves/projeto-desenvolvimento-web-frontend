@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
+import ax from 'axios'
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -8,6 +9,7 @@ export default function AdminLogin() {
     email: '',
     senha: ''
   });
+
   const [erro, setErro] = useState('');
 
   const handleChange = (e) => {
@@ -15,12 +17,16 @@ export default function AdminLogin() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Aqui você deve implementar a validação real com o backend
     // Por enquanto, vamos usar um login mock
-    if (formData.email === 'admin@geladinho.com' && formData.senha === 'admin123') {
+
+    let response = await ax.get('http://localhost:8080/usuario/1');
+    let usuaioAdmin = response.data[0];
+    
+    if (formData.email === usuaioAdmin.email_usuario && formData.senha === usuaioAdmin.senha_usuario) {
       localStorage.setItem('adminAuthenticated', 'true');
       navigate('/admin/produtos');
     } else {
