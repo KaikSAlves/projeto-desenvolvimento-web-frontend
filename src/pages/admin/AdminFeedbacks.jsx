@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaStar, FaTrash, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import ax from 'axios';
 
 export default function AdminFeedbacks() {
   const navigate = useNavigate();
@@ -9,10 +10,12 @@ export default function AdminFeedbacks() {
     avaliacao: ''
   });
 
-  // Carrega os feedbacks do localStorage ao montar o componente
   useEffect(() => {
-    const feedbacksSalvos = JSON.parse(localStorage.getItem('feedbacks') || '[]');
-    setFeedbacks(feedbacksSalvos);
+      async function carregarFeedbacks() {
+      const response = await ax.get('http://localhost:8080/feedback');
+      setFeedbacks(response.data);
+      }
+      carregarFeedbacks();
   }, []);
 
   const handleFiltroChange = (e) => {
@@ -21,14 +24,21 @@ export default function AdminFeedbacks() {
   };
 
   const handleDeletar = (id) => {
-    const feedbacksAtualizados = feedbacks.filter(f => f.id !== id);
-    setFeedbacks(feedbacksAtualizados);
-    localStorage.setItem('feedbacks', JSON.stringify(feedbacksAtualizados));
+    ax.delete(`http://localhost:8080/feedback/${id}`)
+      .then(() => {
+        const feedbacksAtualizados = feedbacks.filter(f => f.id_feedback !== id);
+        setFeedbacks(feedbacksAtualizados);
+      }
+      )
+      .catch(error => {
+        console.error('Erro ao deletar feedback:', error);
+      });
   };
 
   // Filtra os feedbacks com base nos filtros selecionados
   const feedbacksFiltrados = feedbacks.filter(feedback => {
-    const avaliacaoMatch = filtros.avaliacao === '' || feedback.avaliacao === parseInt(filtros.avaliacao);
+    console.log(filtros.avaliacao);
+    const avaliacaoMatch = filtros.avaliacao === '' || feedback.nvl_avaliacao_feedback === parseInt(filtros.avaliacao);
     return avaliacaoMatch;
   });
 
@@ -85,19 +95,19 @@ export default function AdminFeedbacks() {
                       <FaStar
                         key={i}
                         className={`text-lg ${
-                          i < feedback.avaliacao ? 'text-yellow-400' : 'text-gray-300'
+                          i < feedback.nvl_avaliacao_feedback ? 'text-yellow-400' : 'text-gray-300'
                         }`}
                       />
                     ))}
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-900">{feedback.comentario}</td>
+                <td className="px-6 py-4 text-sm text-gray-900">{feedback.descricao_feedback}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {new Date(feedback.data).toLocaleDateString('pt-BR')}
+                  {new Date(feedback.data_feedback).toLocaleDateString('pt-BR')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   <button
-                    onClick={() => handleDeletar(feedback.id)}
+                    onClick={() => handleDeletar(feedback.id_feedback)}
                     className="text-red-600 hover:text-red-900"
                   >
                     <FaTrash />

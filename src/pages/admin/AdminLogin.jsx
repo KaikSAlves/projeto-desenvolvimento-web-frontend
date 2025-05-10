@@ -19,9 +19,6 @@ export default function AdminLogin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Aqui você deve implementar a validação real com o backend
-    // Por enquanto, vamos usar um login mock
 
     let response = await ax.get('http://localhost:8080/usuario/1');
     let usuaioAdmin = response.data[0];
