@@ -37,7 +37,6 @@ export default function AdminFeedbacks() {
 
   // Filtra os feedbacks com base nos filtros selecionados
   const feedbacksFiltrados = feedbacks.filter(feedback => {
-    console.log(filtros.avaliacao);
     const avaliacaoMatch = filtros.avaliacao === '' || feedback.nvl_avaliacao_feedback === parseInt(filtros.avaliacao);
     return avaliacaoMatch;
   });

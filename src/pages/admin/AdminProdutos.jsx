@@ -1,42 +1,34 @@
 import { useState, useEffect } from 'react';
 import { FaEdit, FaTrash, FaPlus, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-
-const mockProdutos = [
-  { id: 101, tipo: 'Geladinho', sabor: 'Morango', descricao: 'Geladinho sabor morango', valor: 2.50 },
-  { id: 102, tipo: 'Geladinho', sabor: 'Chocolate', descricao: 'Geladinho sabor chocolate', valor: 2.50 },
-  { id: 201, tipo: 'Picolé', sabor: 'Limão', descricao: 'Picolé sabor limão', valor: 3.00 },
-];
-
-const saboresPorTipo = {
-  Geladinho: ['Morango', 'Chocolate', 'Uva', 'Coco', 'Abacaxi'],
-  Picolé: ['Limão', 'Morango', 'Chocolate', 'Coco', 'Abacaxi', 'Maracujá']
-};
+import ax from  'axios';
 
 export default function AdminProdutos() {
   const navigate = useNavigate();
-  const [produtos, setProdutos] = useState(() => {
-    const produtosSalvos = localStorage.getItem('produtos');
-    return produtosSalvos ? JSON.parse(produtosSalvos) : mockProdutos;
-  });
+  const [produtos, setProdutos] = useState([]);
   const [filtros, setFiltros] = useState({
-    idProduto: '',
-    sabor: '',
-    tipo: ''
+    id_produto: '',
+    sabor_produto: '',
+    tipo_produto: ''
   });
+
   const [modalAberto, setModalAberto] = useState(false);
   const [produtoEditando, setProdutoEditando] = useState(null);
   const [formData, setFormData] = useState({
-    tipo: '',
-    sabor: '',
-    descricao: '',
-    valor: ''
+    tipo_produto: '',
+    sabor_produto: '',
+    desc_produto: '',
+    valor_produto: ''
   });
 
   // Atualiza o localStorage sempre que os produtos mudarem
   useEffect(() => {
-    localStorage.setItem('produtos', JSON.stringify(produtos));
-  }, [produtos]);
+    async function carregarProdutos() {
+      const response = await ax.get('http://localhost:8080/produto');
+      setProdutos(response.data);
+    }
+    carregarProdutos();
+  }, []);
 
   const handleFiltroChange = (e) => {
     const { name, value } = e.target;
@@ -48,8 +40,8 @@ export default function AdminProdutos() {
     if (name === 'tipo') {
       setFormData(prev => ({
         ...prev,
-        tipo: value,
-        sabor: '' // Limpa o sabor quando o tipo muda
+        tipo_produto: value,
+        sabor_produto: '' // Limpa o sabor quando o tipo muda
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -59,49 +51,60 @@ export default function AdminProdutos() {
   const handleEditar = (produto) => {
     setProdutoEditando(produto);
     setFormData({
-      tipo: produto.tipo,
-      sabor: produto.sabor,
-      descricao: produto.descricao,
-      valor: produto.valor
+      tipo_produto: produto.tipo_produto,
+      sabor_produto: produto.sabor_produto,
+      desc_produto: produto.desc_produto,
+      valor_produto: produto.valor_produto
     });
     setModalAberto(true);
   };
 
-  const handleDeletar = (id) => {
-    setProdutos(prev => prev.filter(p => p.id !== id));
+  const handleDeletar = async (id) => {
+    ax.delete(`http://localhost:8080/produto/${id}`)
+    setProdutos(prev => prev.filter(p => p.id_produto !== id));
   };
 
-  const handleSalvar = (e) => {
+  const handleSalvar = async (e) => {
     e.preventDefault();
     
     // Validações
-    if (parseFloat(formData.valor) <= 0) {
+    if (parseFloat(formData.valor_produto) <= 0) {
       alert('O valor deve ser maior que zero');
       return;
     }
     
     if (produtoEditando) {
+      const produtoAtualizado = {
+        ...produtoEditando,
+        ...formData,
+        valor_produto: parseFloat(formData.valor_produto)
+      };
+      await ax.put(`http://localhost:8080/produto/${produtoEditando.id_produto}`, produtoAtualizado);
+
       setProdutos(prev => prev.map(p => 
-        p.id === produtoEditando.id 
-          ? { ...p, ...formData, valor: parseFloat(formData.valor) }
+        p.id_produto === produtoEditando.id_produto 
+          ? { ...p, ...formData, valor_produto: parseFloat(formData.valor_produto) }
           : p
       ));
     } else {
       const novoProduto = {
-        id: produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) + 1 : 101,
+        id_produto: '',
         ...formData,
-        valor: parseFloat(formData.valor)
+        valor_produto: parseFloat(formData.valor_produto)
       };
-      setProdutos(prev => [...prev, novoProduto]);
+
+      const response = await ax.post('http://localhost:8080/produto', novoProduto);
+      novoProduto.id_produto = response.data.id;
+      setProdutos(prev => [...prev, novoProduto]);  
     }
 
     setModalAberto(false);
     setProdutoEditando(null);
     setFormData({
-      tipo: '',
-      sabor: '',
-      descricao: '',
-      valor: ''
+      tipo_produto: '',
+      sabor_produto: '',
+      desc_produto: '',
+      valor_produto: ''
     });
   };
 
@@ -109,12 +112,20 @@ export default function AdminProdutos() {
     setModalAberto(false);
     setProdutoEditando(null);
     setFormData({
-      tipo: '',
-      sabor: '',
-      descricao: '',
-      valor: ''
+      tipo_produto: '',
+      sabor_produto: '',
+      desc_produto: '',
+      valor_produto: ''
     });
   };
+
+
+  const produtosFiltrados = produtos.filter(produtos => {
+    const avaliacaoMatch = filtros.id_produto === produtos.id_produto || filtros.id_produto === '' || 
+    filtros.sabor_produto === produtos.sabor_produto || filtros.sabor_produto === ''  ||
+    filtros.tipo_produto === produtos.tipo_produto || filtros.tipo_produto === '';
+    return avaliacaoMatch;
+  });
 
   return (
     <div className="p-6">
@@ -134,8 +145,8 @@ export default function AdminProdutos() {
             <label className="block text-sm font-medium text-gray-700 mb-1">ID Produto</label>
             <input
               type="text"
-              name="idProduto"
-              value={filtros.idProduto}
+              name="id_produto"
+              value={filtros.id_produto}
               onChange={handleFiltroChange}
               className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
               placeholder="Digite o ID"
@@ -145,8 +156,8 @@ export default function AdminProdutos() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Sabor</label>
             <input
               type="text"
-              name="sabor"
-              value={filtros.sabor}
+              name="sabor_produto"
+              value={filtros.sabor_produto}
               onChange={handleFiltroChange}
               className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
               placeholder="Digite o sabor"
@@ -155,8 +166,8 @@ export default function AdminProdutos() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
             <select
-              name="tipo"
-              value={filtros.tipo}
+              name="tipo_produto"
+              value={filtros.tipo_produto}
               onChange={handleFiltroChange}
               className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
             >
@@ -173,10 +184,10 @@ export default function AdminProdutos() {
         onClick={() => {
           setProdutoEditando(null);
           setFormData({
-            tipo: '',
-            sabor: '',
-            descricao: '',
-            valor: ''
+            tipo_produto: '',
+            sabor_produto: '',
+            desc_produto: '',
+            valor_produto: ''
           });
           setModalAberto(true);
         }}
@@ -200,14 +211,14 @@ export default function AdminProdutos() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {produtos.map((produto) => (
-              <tr key={produto.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{produto.id}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{produto.tipo}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{produto.sabor}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{produto.descricao}</td>
+            {produtosFiltrados.map((produto) => (
+              <tr key={produto.id_produto}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{produto.id_produto}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{produto.tipo_produto}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{produto.sabor_produto}</td>
+                <td className="px-6 py-4 text-sm text-gray-900">{produto.desc_produto}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  R$ {produto.valor.toFixed(2)}
+                  R$ {produto.valor_produto.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   <button
@@ -217,7 +228,7 @@ export default function AdminProdutos() {
                     <FaEdit />
                   </button>
                   <button
-                    onClick={() => handleDeletar(produto.id)}
+                    onClick={() => handleDeletar(produto.id_produto)}
                     className="text-red-600 hover:text-red-900"
                   >
                     <FaTrash />
@@ -242,7 +253,7 @@ export default function AdminProdutos() {
                   <label className="block text-sm font-medium text-gray-700">ID</label>
                   <input
                     type="text"
-                    value={produtoEditando.id}
+                    value={produtoEditando.id_produto}
                     className="w-full p-2 border rounded-lg bg-gray-100"
                     readOnly
                   />
@@ -252,8 +263,8 @@ export default function AdminProdutos() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Tipo</label>
                   <select
-                    name="tipo"
-                    value={formData.tipo}
+                    name="tipo_produto"
+                    value={formData.tipo_produto}
                     onChange={handleFormChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
                     required
@@ -265,25 +276,20 @@ export default function AdminProdutos() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Sabor</label>
-                  <select
-                    name="sabor"
-                    value={formData.sabor}
+                  <input
+                    name="sabor_produto"
+                    value={formData.sabor_produto}
                     onChange={handleFormChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
                     required
-                    disabled={!formData.tipo}
                   >
-                    <option value="">Selecione um sabor</option>
-                    {formData.tipo && saboresPorTipo[formData.tipo].map(sabor => (
-                      <option key={sabor} value={sabor}>{sabor}</option>
-                    ))}
-                  </select>
+                  </input>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Descrição</label>
                   <textarea
-                    name="descricao"
-                    value={formData.descricao}
+                    name="desc_produto"
+                    value={formData.desc_produto}
                     onChange={handleFormChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
                     required
@@ -293,8 +299,8 @@ export default function AdminProdutos() {
                   <label className="block text-sm font-medium text-gray-700">Valor</label>
                   <input
                     type="number"
-                    name="valor"
-                    value={formData.valor}
+                    name="valor_produto"
+                    value={formData.valor_produto}
                     onChange={handleFormChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
                     required
