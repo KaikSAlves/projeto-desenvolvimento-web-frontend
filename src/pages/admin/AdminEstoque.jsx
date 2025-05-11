@@ -1,63 +1,38 @@
 import { useState, useEffect } from 'react';
 import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
-
-const mockProdutos = [
-  { id: 101, nome: 'Geladinho de Morango' },
-  { id: 102, nome: 'Geladinho de Chocolate' },
-  { id: 103, nome: 'Geladinho de Coco' },
-  { id: 104, nome: 'Geladinho de Uva' },
-  { id: 105, nome: 'Geladinho de Abacaxi' },
-  { id: 201, nome: 'Picolé de Limão' },
-  { id: 202, nome: 'Picolé de Maracujá' },
-  { id: 203, nome: 'Picolé de Morango' },
-  { id: 204, nome: 'Picolé de Chocolate' },
-  { id: 205, nome: 'Picolé de Coco' },
-  { id: 206, nome: 'Picolé de Uva' },
-  { id: 207, nome: 'Picolé de Abacaxi' },
-  { id: 208, nome: 'Picolé de Manga' },
-  { id: 209, nome: 'Picolé de Graviola' },
-  { id: 210, nome: 'Picolé de Acerola' },
-  { id: 211, nome: 'Picolé de Cupuaçu' },
-  { id: 212, nome: 'Picolé de Açaí' },
-  { id: 213, nome: 'Picolé de Tangerina' },
-  { id: 214, nome: 'Picolé de Goiaba' },
-  { id: 215, nome: 'Picolé de Cajá' },
-  { id: 216, nome: 'Picolé de Caju' },
-  { id: 217, nome: 'Picolé de Pitanga' },
-  { id: 218, nome: 'Picolé de Jabuticaba' },
-  { id: 219, nome: 'Picolé de Tamarindo' },
-  { id: 220, nome: 'Picolé de Carambola' }
-];
-
-const mockEstoques = [
-  { id: 1, produtoId: 101, nomeProduto: 'Geladinho de Morango', quantidade: 50, minimo: 10, dataAtualizacao: '2024-03-20' },
-  { id: 2, produtoId: 102, nomeProduto: 'Geladinho de Chocolate', quantidade: 30, minimo: 5, dataAtualizacao: '2024-03-19' },
-];
+import ax from 'axios';
+import dayjs from 'dayjs';
 
 export default function AdminEstoque() {
-  const [estoques, setEstoques] = useState(() => {
-    const estoquesSalvos = localStorage.getItem('estoques');
-    return estoquesSalvos ? JSON.parse(estoquesSalvos) : mockEstoques;
-  });
+  const [produtos, setProdutos] = useState([]);
+  const [estoques, setEstoques] = useState([]);
   const [filtros, setFiltros] = useState({
     idEstoque: '',
     produtoId: '',
     data: ''
   });
+
   const [modalAberto, setModalAberto] = useState(false);
   const [estoqueEditando, setEstoqueEditando] = useState(null);
   const [formData, setFormData] = useState({
-    produtoId: '',
-    nomeProduto: '',
-    quantidade: '',
-    minimo: '',
-    dataAtualizacao: ''
+    id_estoque: '',
+    id_produto: '',
+    qtd_disponivel: '',
+    qtd_min: '',
+    data_atualizacao: ''
   });
 
   // Atualiza o localStorage sempre que os estoques mudarem
   useEffect(() => {
-    localStorage.setItem('estoques', JSON.stringify(estoques));
-  }, [estoques]);
+      async function carregarEstoques() {
+        const response = await ax.get('http://localhost:8080/estoque');
+        const produtosResponse = await ax.get('http://localhost:8080/produto');
+
+        setEstoques(response.data);
+        setProdutos(produtosResponse.data);
+      }
+      carregarEstoques(); 
+  }, []);
 
   const handleFiltroChange = (e) => {
     const { name, value } = e.target;
@@ -67,11 +42,11 @@ export default function AdminEstoque() {
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     if (name === 'produtoId') {
-      const produtoSelecionado = mockProdutos.find(p => p.id === parseInt(value));
+      const produtoSelecionado = produtos.find(p => p.id === parseInt(value));
       setFormData(prev => ({
         ...prev,
-        produtoId: value,
-        nomeProduto: produtoSelecionado ? produtoSelecionado.nome : ''
+        id_estoque: value,
+        id_produto: produtoSelecionado ? produtoSelecionado.id_produto : ''
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -81,62 +56,79 @@ export default function AdminEstoque() {
   const handleEditar = (estoque) => {
     setEstoqueEditando(estoque);
     setFormData({
-      produtoId: estoque.produtoId,
-      nomeProduto: estoque.nomeProduto,
-      quantidade: estoque.quantidade,
-      minimo: estoque.minimo,
-      dataAtualizacao: estoque.dataAtualizacao
+      id_estoque: estoque.id_estoque,
+      id_produto: estoque.id_produto,
+      qtd_disponivel: estoque.qtd_disponivel,
+      qtd_min: estoque.qtd_min,
+      data_atualizacao: new Date(estoque.data_atualizacao).toISOString().slice(0, 10)
     });
     setModalAberto(true);
   };
 
-  const handleDeletar = (id) => {
-    setEstoques(prev => prev.filter(e => e.id !== id));
+  const handleDeletar = async (id) => {
+    await ax.delete(`http://localhost:8080/estoque/${id}`);
+    setEstoques(prev => prev.filter(e => e.id_estoque !== id));
   };
-
-  const handleSalvar = (e) => {
+   
+  const handleSalvar = async (e) => {
     e.preventDefault();
     
     // Validações
-    if (parseInt(formData.quantidade) <= 0) {
+    if (parseInt(formData.qtd_disponivel) <= 0) {
       alert('A quantidade deve ser maior que zero');
       return;
     }
 
-    if (parseInt(formData.minimo) <= 0) {
+    if (parseInt(formData.qtd_min) <= 0) {
       alert('A quantidade mínima deve ser maior que zero');
       return;
     }
 
-    if (parseInt(formData.quantidade) < parseInt(formData.minimo)) {
+    if (parseInt(formData.qtd_disponivel) < parseInt(formData.qtd_min)) {
       alert('A quantidade não pode ser menor que a quantidade mínima');
       return;
     }
 
-    const dataAtualizacao = new Date(formData.dataAtualizacao);
+    const dataAtualizacao = new Date(formData.data_atualizacao);
     const hoje = new Date();
+    const data_atualizacao = dayjs(formData.data_atualizacao).format("YYYY-MM-DD");
+
     if (dataAtualizacao > hoje) {
       alert('A data de atualização não pode ser futura');
       return;
     }
     
     if (estoqueEditando) {
+      const estoqueAtualizado = {
+        ...estoqueEditando,
+        ...formData,
+        data_atualizacao
+      };
+
+      await ax.put(`http://localhost:8080/estoque/${estoqueEditando.id_estoque}`, estoqueAtualizado);
+
       setEstoques(prev => prev.map(e => 
-        e.id === estoqueEditando.id ? { ...formData, id: estoqueEditando.id } : e
+        e.id_estoque === estoqueEditando.id_estoque ? { ...formData, id_estoque: estoqueEditando.id_estoque } : e
       ));
     } else {
-      const novoId = Math.max(...estoques.map(e => e.id), 0) + 1;
-      setEstoques(prev => [...prev, { ...formData, id: novoId }]);
+      const novoEstoque = {
+        id_estoque: '',
+        data_atualizacao,
+        ...formData,
+      };
+      const response = await ax.post('http://localhost:8080/estoque', novoEstoque);
+      novoEstoque.id_estoque = response.data.id;
+      setEstoques(prev => [...prev, { ...formData, id_estoque: novoEstoque.id_estoque }]);
     }
 
     setModalAberto(false);
     setEstoqueEditando(null);
     setFormData({
-      produtoId: '',
-      nomeProduto: '',
-      quantidade: '',
-      minimo: '',
-      dataAtualizacao: ''
+      id_estoque: '',
+      id_produto: '',
+      qtd_disponivel: '',
+      qtd_min: '',
+      data_atualizacao: ''
     });
   };
 
@@ -144,11 +136,11 @@ export default function AdminEstoque() {
     setModalAberto(false);
     setEstoqueEditando(null);
     setFormData({
-      produtoId: '',
-      nomeProduto: '',
-      quantidade: '',
-      minimo: '',
-      dataAtualizacao: ''
+      id_estoque: '',
+      id_produto: '',
+      qtd_disponivel: '',
+      qtd_min: '',
+      data_atualizacao: ''
     });
   };
 
@@ -177,9 +169,9 @@ export default function AdminEstoque() {
               className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
             >
               <option value="">Todos</option>
-              {mockProdutos.map(produto => (
-                <option key={produto.id} value={produto.id}>
-                  {produto.nome}
+              {produtos.map(produto => (
+                <option key={produto.id_produto} value={produto.id_produto}>
+                  {produto.desc_produto}
                 </option>
               ))}
             </select>
@@ -202,11 +194,11 @@ export default function AdminEstoque() {
         onClick={() => {
           setEstoqueEditando(null);
           setFormData({
-            produtoId: '',
-            nomeProduto: '',
-            quantidade: '',
-            minimo: '',
-            dataAtualizacao: ''
+            id_estoque: '',
+            id_produto: '',
+            qtd_disponivel: '',
+            qtd_min: '',
+            data_atualizacao: ''
           });
           setModalAberto(true);
         }}
@@ -230,14 +222,16 @@ export default function AdminEstoque() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {estoques.map((estoque) => (
-              <tr key={estoque.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{estoque.id}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{estoque.nomeProduto}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{estoque.quantidade}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{estoque.minimo}</td>
+            
+            {estoques && produtos.length > 0 && estoques.map((estoque) => (
+              <tr key={estoque.id_estoque}>
+                
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{estoque.id_estoque}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{produtos.find(p => p.id_produto == estoque.id_produto)?.desc_produto || 'Produto não encontrado'}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{estoque.qtd_disponivel}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{estoque.qtd_min}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {new Date(estoque.dataAtualizacao).toLocaleDateString('pt-BR')}
+                  {dayjs(estoque.data_atualizacao).format('DD/MM/YYYY')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   <button
@@ -247,7 +241,7 @@ export default function AdminEstoque() {
                     <FaEdit />
                   </button>
                   <button
-                    onClick={() => handleDeletar(estoque.id)}
+                    onClick={() => handleDeletar(estoque.id_estoque)}
                     className="text-red-600 hover:text-red-900"
                   >
                     <FaTrash />
@@ -272,7 +266,7 @@ export default function AdminEstoque() {
                   <label className="block text-sm font-medium text-gray-700">ID</label>
                   <input
                     type="text"
-                    value={estoqueEditando.id}
+                    value={estoqueEditando.id_estoque}
                     className="w-full p-2 border rounded-lg bg-gray-100"
                     readOnly
                   />
@@ -282,16 +276,16 @@ export default function AdminEstoque() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Produto</label>
                   <select
-                    name="produtoId"
-                    value={formData.produtoId}
+                    name="id_produto"
+                    value={formData.id_produto}
                     onChange={handleFormChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
                     required
                   >
                     <option value="">Selecione um produto</option>
-                    {mockProdutos.map(produto => (
-                      <option key={produto.id} value={produto.id}>
-                        {produto.nome}
+                    {produtos.map(produto => (
+                      <option key={produto.id_produto} value={produto.id_produto}>
+                        {produto.desc_produto}
                       </option>
                     ))}
                   </select>
@@ -300,8 +294,8 @@ export default function AdminEstoque() {
                   <label className="block text-sm font-medium text-gray-700">Quantidade</label>
                   <input
                     type="number"
-                    name="quantidade"
-                    value={formData.quantidade}
+                    name="qtd_disponivel"
+                    value={formData.qtd_disponivel}
                     onChange={handleFormChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
                     required
@@ -312,8 +306,8 @@ export default function AdminEstoque() {
                   <label className="block text-sm font-medium text-gray-700">Quantidade Mínima</label>
                   <input
                     type="number"
-                    name="minimo"
-                    value={formData.minimo}
+                    name="qtd_min"
+                    value={formData.qtd_min}
                     onChange={handleFormChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
                     required
@@ -324,8 +318,8 @@ export default function AdminEstoque() {
                   <label className="block text-sm font-medium text-gray-700">Data de Atualização</label>
                   <input
                     type="date"
-                    name="dataAtualizacao"
-                    value={formData.dataAtualizacao}
+                    name="data_atualizacao"
+                    value={formData.data_atualizacao}
                     onChange={handleFormChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
                     required
@@ -343,7 +337,7 @@ export default function AdminEstoque() {
                 <button
                   type="submit"
                   className="px-4 py-2 text-sm font-medium text-white bg-gray-800 hover:bg-gray-700 rounded-lg"
-                >
+                > 
                   Salvar
                 </button>
               </div>

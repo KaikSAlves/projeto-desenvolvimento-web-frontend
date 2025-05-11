@@ -87,7 +87,7 @@ export default function AdminFeedbacks() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {feedbacksFiltrados.map((feedback) => (
-              <tr key={feedback.id}>
+              <tr key={feedback.id_feedback}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (

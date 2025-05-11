@@ -59,7 +59,7 @@ export default function AdminProdutos() {
   };
 
   const handleDeletar = async (id) => {
-    ax.delete(`http://localhost:8080/produto/${id}`)
+    await ax.delete(`http://localhost:8080/produto/${id}`)
     setProdutos(prev => prev.filter(p => p.id_produto !== id));
   };
 
@@ -125,7 +125,7 @@ export default function AdminProdutos() {
     const tipoMatch = filtros.tipo === '' || produtos.tipo_produto === filtros.tipo;
     const idMatch = filtros.id === '' || parseInt(filtros.id) === produtos.id_produto;
     const avaliacaoMatch = idMatch && saborMatch && tipoMatch;
-    
+
     return avaliacaoMatch;
   });
 
