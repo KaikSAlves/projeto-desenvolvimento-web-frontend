@@ -144,6 +144,15 @@ export default function AdminEstoque() {
     });
   };
 
+  const estoqueFiltrado = estoques.filter(estoque => {
+    const idEstoqueMatch = filtros.idEstoque ? estoque.id_estoque.toString().includes(filtros.idEstoque) : true;
+    const produtoIdMatch = filtros.produtoId ? estoque.id_produto.toString() === filtros.produtoId : true;
+    const dataMatch = filtros.data ? dayjs(estoque.data_atualizacao).isSame(dayjs(filtros.data), 'day') : true;
+
+    return idEstoqueMatch && produtoIdMatch && dataMatch;
+  }
+  );
+
   return (
     <div className="p-6">
       {/* Filtros */}
@@ -223,7 +232,7 @@ export default function AdminEstoque() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             
-            {estoques && produtos.length > 0 && estoques.map((estoque) => (
+            {estoques && produtos.length > 0 && estoqueFiltrado.map((estoque) => (
               <tr key={estoque.id_estoque}>
                 
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{estoque.id_estoque}</td>
