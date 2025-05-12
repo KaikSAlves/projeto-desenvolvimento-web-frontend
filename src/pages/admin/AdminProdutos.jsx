@@ -59,8 +59,14 @@ export default function AdminProdutos() {
   };
 
   const handleDeletar = async (id) => {
-    await ax.delete(`http://localhost:8080/produto/${id}`)
-    setProdutos(prev => prev.filter(p => p.id_produto !== id));
+    try{
+      await ax.delete(`http://localhost:8080/produto/${id}`);
+      setProdutos(prev => prev.filter(p => p.id_produto !== id));
+    }catch(e){
+      console.error('Erro ao deletar o produto:', e);
+      alert('Erro ao deletar o produto. Verifique se ele está vinculado a um estoque.');
+      return;
+    }
   };
 
   const handleSalvar = async (e) => {
