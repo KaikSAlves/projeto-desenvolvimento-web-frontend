@@ -11,7 +11,7 @@ const produtos = {
             name: 'Geladinho de Coco',
             description: 'Refrescante geladinho de coco natural',
             price: 2.50,
-            image: '/images/geladinho-coco.jpeg',
+            image: '/images/geladinho-coco.jpeg',   
             isHighlight: true
         },
         {
