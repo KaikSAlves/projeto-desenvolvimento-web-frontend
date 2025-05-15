@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import NavLink from './NavLink';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   const scrollToCardapio = () => {
     document.getElementById('cardapio').scrollIntoView({ 
@@ -23,22 +25,24 @@ const Header = () => {
           </h1>
 
           {/* Menu Desktop */}
-          <nav className="hidden md:block">
-            <ul className="flex space-x-8">
-              <NavLink href="#inicio">Início</NavLink>
-              <NavLink 
-                href="#cardapio"
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToCardapio();
-                }}
-              >
-                Cardápio
-              </NavLink>
-              <NavLink href="#feedback">Feedback</NavLink>
-              <NavLink href="#contato">Contato</NavLink>
-            </ul>
-          </nav>
+          {!isAdminPage && (
+            <nav className="hidden md:block">
+              <ul className="flex space-x-8">
+                <NavLink href="#inicio">Início</NavLink>
+                <NavLink 
+                  href="#cardapio"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToCardapio();
+                  }}
+                >
+                  Cardápio
+                </NavLink>
+                <NavLink href="#feedback">Feedback</NavLink>
+                <NavLink href="#contato">Contato</NavLink>
+              </ul>
+            </nav>
+          )}
 
           {/* Botão Admin */}
           <Link 
@@ -82,45 +86,49 @@ const Header = () => {
         >
           <nav className="py-4 border-t">
             <ul className="space-y-4">
-              <li>
-                <a
-                  href="#inicio"
-                  className="block px-4 py-2 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Início
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#cardapio"
-                  className="block px-4 py-2 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToCardapio();
-                  }}
-                >
-                  Cardápio
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#feedback"
-                  className="block px-4 py-2 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Feedback
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#contato"
-                  className="block px-4 py-2 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Contato
-                </a>
-              </li>
+              {!isAdminPage && (
+                <>
+                  <li>
+                    <a
+                      href="#inicio"
+                      className="block px-4 py-2 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Início
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#cardapio"
+                      className="block px-4 py-2 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        scrollToCardapio();
+                      }}
+                    >
+                      Cardápio
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#feedback"
+                      className="block px-4 py-2 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Feedback
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#contato"
+                      className="block px-4 py-2 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Contato
+                    </a>
+                  </li>
+                </>
+              )}
               <li>
                 <Link
                   to="/admin/login"
