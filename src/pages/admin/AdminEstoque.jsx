@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import ax from 'axios';
 import dayjs from 'dayjs';
+import Swal from 'sweetalert2';
 
 export default function AdminEstoque() {
   const [produtos, setProdutos] = useState([]);
@@ -24,14 +25,14 @@ export default function AdminEstoque() {
 
   // Atualiza o localStorage sempre que os estoques mudarem
   useEffect(() => {
-      async function carregarEstoques() {
-        const response = await ax.get('http://localhost:8080/estoque');
-        const produtosResponse = await ax.get('http://localhost:8080/produto');
+    async function carregarEstoques() {
+      const response = await ax.get('http://localhost:8080/estoque');
+      const produtosResponse = await ax.get('http://localhost:8080/produto');
 
-        setEstoques(response.data);
-        setProdutos(produtosResponse.data);
-      }
-      carregarEstoques(); 
+      setEstoques(response.data);
+      setProdutos(produtosResponse.data);
+    }
+    carregarEstoques();
   }, []);
 
   const handleFiltroChange = (e) => {
@@ -68,11 +69,18 @@ export default function AdminEstoque() {
   const handleDeletar = async (id) => {
     await ax.delete(`http://localhost:8080/estoque/${id}`);
     setEstoques(prev => prev.filter(e => e.id_estoque !== id));
+
+    Swal.fire({
+      title: 'Sucesso!',
+      text: `O Estoque ${id} foi deletado com sucesso!`,
+      icon: 'success',
+      confirmButtonText: 'Ok'
+    });
   };
-   
+
   const handleSalvar = async (e) => {
     e.preventDefault();
-    
+
     // Validações
     if (parseInt(formData.qtd_disponivel) <= 0) {
       alert('A quantidade deve ser maior que zero');
@@ -97,7 +105,7 @@ export default function AdminEstoque() {
       alert('A data de atualização não pode ser futura');
       return;
     }
-    
+
     if (estoqueEditando) {
       const estoqueAtualizado = {
         ...estoqueEditando,
@@ -107,9 +115,16 @@ export default function AdminEstoque() {
 
       await ax.put(`http://localhost:8080/estoque/${estoqueEditando.id_estoque}`, estoqueAtualizado);
 
-      setEstoques(prev => prev.map(e => 
+      setEstoques(prev => prev.map(e =>
         e.id_estoque === estoqueEditando.id_estoque ? { ...formData, id_estoque: estoqueEditando.id_estoque } : e
       ));
+
+      Swal.fire({
+        title: 'Sucesso!',
+        text: `O Estoque ${estoqueEditando.id_estoque} foi editado com sucesso!`,
+        icon: 'success',
+        confirmButtonText: 'Ok'
+      });
     } else {
       const novoEstoque = {
         id_estoque: '',
@@ -119,6 +134,12 @@ export default function AdminEstoque() {
       const response = await ax.post('http://localhost:8080/estoque', novoEstoque);
       novoEstoque.id_estoque = response.data.id;
       setEstoques(prev => [...prev, { ...formData, id_estoque: novoEstoque.id_estoque }]);
+      Swal.fire({
+        title: 'Sucesso!',
+        text: `O Estoque ${novoEstoque.id_estoque} criado!`,
+        icon: 'success',
+        confirmButtonText: 'Ok'
+      });
     }
 
     setModalAberto(false);
@@ -231,10 +252,10 @@ export default function AdminEstoque() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            
+
             {estoques && produtos.length > 0 && estoqueFiltrado.map((estoque) => (
               <tr key={estoque.id_estoque}>
-                
+
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{estoque.id_estoque}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{produtos.find(p => p.id_produto == estoque.id_produto)?.desc_produto || 'Produto não encontrado'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{estoque.qtd_disponivel}</td>
@@ -346,7 +367,7 @@ export default function AdminEstoque() {
                 <button
                   type="submit"
                   className="px-4 py-2 text-sm font-medium text-white bg-gray-800 hover:bg-gray-700 rounded-lg"
-                > 
+                >
                   Salvar
                 </button>
               </div>

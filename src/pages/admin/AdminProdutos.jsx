@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { FaEdit, FaTrash, FaPlus, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import ax from  'axios';
+import ax from 'axios';
+import toastr from 'toastr';
+import Swal from 'sweetalert2';
 
 export default function AdminProdutos() {
   const navigate = useNavigate();
@@ -59,25 +61,37 @@ export default function AdminProdutos() {
   };
 
   const handleDeletar = async (id) => {
-    try{
+    try {
       await ax.delete(`http://localhost:8080/produto/${id}`);
       setProdutos(prev => prev.filter(p => p.id_produto !== id));
-    }catch(e){
+      Swal.fire({
+        title: 'Sucesso!',
+        text: `O Produto ${id} foi deletado com sucesso!`,
+        icon: 'success',
+        confirmButtonText: 'Ok'
+      });
+    } catch (e) {
       console.error('Erro ao deletar o produto:', e);
-      alert('Erro ao deletar o produto. Verifique se ele está vinculado a um estoque.');
+
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Verifique se ele está vinculado a um estoque.',
+        icon: 'error',
+        confirmButtonText: 'Ok'
+      });
       return;
     }
   };
 
   const handleSalvar = async (e) => {
     e.preventDefault();
-    
+
     // Validações
     if (parseFloat(formData.valor_produto) <= 0) {
       alert('O valor deve ser maior que zero');
       return;
     }
-    
+
     if (produtoEditando) {
       const produtoAtualizado = {
         ...produtoEditando,
@@ -86,11 +100,18 @@ export default function AdminProdutos() {
       };
       await ax.put(`http://localhost:8080/produto/${produtoEditando.id_produto}`, produtoAtualizado);
 
-      setProdutos(prev => prev.map(p => 
-        p.id_produto === produtoEditando.id_produto 
+      setProdutos(prev => prev.map(p =>
+        p.id_produto === produtoEditando.id_produto
           ? { ...p, ...formData, valor_produto: parseFloat(formData.valor_produto) }
           : p
       ));
+
+      Swal.fire({
+        title: 'Sucesso!',
+        text: `O Produto ${produtoEditando.id_produto} foi editado com sucesso!`,
+        icon: 'success',
+        confirmButtonText: 'Ok'
+      });
     } else {
       const novoProduto = {
         id_produto: '',
@@ -100,7 +121,13 @@ export default function AdminProdutos() {
 
       const response = await ax.post('http://localhost:8080/produto', novoProduto);
       novoProduto.id_produto = response.data.id;
-      setProdutos(prev => [...prev, novoProduto]);  
+      setProdutos(prev => [...prev, novoProduto]);
+      Swal.fire({
+        title: 'Sucesso!',
+        text: `O Produto ${novoProduto.id_produto} criado!`,
+        icon: 'success',
+        confirmButtonText: 'Ok'
+      });
     }
 
     setModalAberto(false);

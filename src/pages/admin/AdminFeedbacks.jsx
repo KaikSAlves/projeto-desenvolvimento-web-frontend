@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaStar, FaTrash, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import ax from 'axios';
+import Swal from 'sweetalert2';
 
 export default function AdminFeedbacks() {
   const navigate = useNavigate();
@@ -28,6 +29,12 @@ export default function AdminFeedbacks() {
       .then(() => {
         const feedbacksAtualizados = feedbacks.filter(f => f.id_feedback !== id);
         setFeedbacks(feedbacksAtualizados);
+        Swal.fire({
+          title: 'Sucesso!',
+          text: `O Feedback ${id} foi deletado com sucesso!`,
+          icon: 'success',
+          confirmButtonText: 'Ok'
+        });
       }
       )
       .catch(error => {
