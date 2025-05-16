@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaShoppingCart } from 'react-icons/fa';
 import ax from 'axios';
 import dayjs from 'dayjs';
 import Swal from 'sweetalert2';
@@ -14,7 +14,9 @@ export default function AdminEstoque() {
   });
 
   const [modalAberto, setModalAberto] = useState(false);
+  const [modalVendaAberto, setModalVendaAberto] = useState(false);
   const [estoqueEditando, setEstoqueEditando] = useState(null);
+  const [estoqueVendendo, setEstoqueVendendo] = useState(null);
   const [formData, setFormData] = useState({
     id_estoque: '',
     id_produto: '',
@@ -22,15 +24,31 @@ export default function AdminEstoque() {
     qtd_min: '',
     data_atualizacao: ''
   });
+  const [formVenda, setFormVenda] = useState({
+    quantidade: '',
+    valor_total: 0
+  });
 
   // Atualiza o localStorage sempre que os estoques mudarem
   useEffect(() => {
     async function carregarEstoques() {
-      const response = await ax.get('http://localhost:8080/estoque');
-      const produtosResponse = await ax.get('http://localhost:8080/produto');
+      try {
+        const response = await ax.get('http://localhost:8080/estoque');
+        const produtosResponse = await ax.get('http://localhost:8080/produto');
 
-      setEstoques(response.data);
-      setProdutos(produtosResponse.data);
+        if (response.data && produtosResponse.data) {
+          setEstoques(response.data);
+          setProdutos(produtosResponse.data);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        Swal.fire({
+          title: 'Erro!',
+          text: 'Não foi possível carregar os dados. Por favor, tente novamente.',
+          icon: 'error',
+          confirmButtonText: 'Ok'
+        });
+      }
     }
     carregarEstoques();
   }, []);
@@ -165,6 +183,110 @@ export default function AdminEstoque() {
     });
   };
 
+  const handleVender = (estoque) => {
+    setEstoqueVendendo(estoque);
+    setFormVenda({
+      quantidade: '',
+      valor_total: 0
+    });
+    setModalVendaAberto(true);
+  };
+
+  const handleVendaChange = (e) => {
+    const { name, value } = e.target;
+    const quantidade = parseInt(value) || 0;
+    
+    if (!estoqueVendendo || !produtos) return;
+    const produto = produtos.find(p => p.id_produto === estoqueVendendo.id_produto);
+    const valor_total = quantidade * (produto?.valor_produto || 0);
+
+    setFormVenda({
+      quantidade: value,
+      valor_total: valor_total
+    });
+  };
+
+  const handleConfirmarVenda = async (e) => {
+    e.preventDefault();
+
+    const quantidade = parseInt(formVenda.quantidade);
+    const novaQuantidade = estoqueVendendo.qtd_disponivel - quantidade;
+
+    if (quantidade <= 0) {
+      Swal.fire({
+        title: 'Erro!',
+        text: 'A quantidade deve ser maior que zero',
+        icon: 'error',
+        confirmButtonText: 'Ok'
+      });
+      return;
+    }
+
+    if (novaQuantidade < 0) {
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Quantidade insuficiente em estoque',
+        icon: 'error',
+        confirmButtonText: 'Ok'
+      });
+      return;
+    }
+
+    if (novaQuantidade < estoqueVendendo.qtd_min) {
+      Swal.fire({
+        title: 'Atenção!',
+        text: 'Esta venda deixará o estoque abaixo do mínimo',
+        icon: 'warning',
+        confirmButtonText: 'Ok'
+      });
+      return;
+    }
+
+    const estoqueAtualizado = {
+      ...estoqueVendendo,
+      qtd_disponivel: novaQuantidade,
+      data_atualizacao:  new Date().toISOString().slice(0, 19).replace('T', ' ')
+    };
+
+    await ax.put(`http://localhost:8080/estoque/${estoqueVendendo.id_estoque}`, estoqueAtualizado);
+
+    setEstoques(prev => prev.map(e =>
+      e.id_estoque === estoqueVendendo.id_estoque ? estoqueAtualizado : e
+    ));
+
+    Swal.fire({
+      title: 'Sucesso!',
+      text: `Venda realizada com sucesso!`,
+      icon: 'success',
+      confirmButtonText: 'Ok'
+    });
+
+    setModalVendaAberto(false);
+    setEstoqueVendendo(null);
+    setFormVenda({
+      quantidade: '',
+      valor_total: 0
+    });
+  };
+
+  const handleCancelarVenda = () => {
+    setModalVendaAberto(false);
+    setEstoqueVendendo(null);
+    setFormVenda({
+      quantidade: '',
+      valor_total: 0
+    });
+  };
+
+  const getProdutoInfo = () => {
+    if (!estoqueVendendo || !produtos) return { desc_produto: '', valor_produto: 0 };
+    const produto = produtos.find(p => p.id_produto === estoqueVendendo.id_produto);
+    return {
+      desc_produto: produto?.desc_produto || '',
+      valor_produto: produto?.valor_produto || 0
+    };
+  };
+
   const estoqueFiltrado = estoques.filter(estoque => {
     const idEstoqueMatch = filtros.idEstoque ? estoque.id_estoque.toString().includes(filtros.idEstoque) : true;
     const produtoIdMatch = filtros.produtoId ? estoque.id_produto.toString() === filtros.produtoId : true;
@@ -271,6 +393,12 @@ export default function AdminEstoque() {
                     <FaEdit />
                   </button>
                   <button
+                    onClick={() => handleVender(estoque)}
+                    className="text-green-600 hover:text-green-900 mr-2"
+                  >
+                    <FaShoppingCart />
+                  </button>
+                  <button
                     onClick={() => handleDeletar(estoque.id_estoque)}
                     className="text-red-600 hover:text-red-900"
                   >
@@ -369,6 +497,92 @@ export default function AdminEstoque() {
                   className="px-4 py-2 text-sm font-medium text-white bg-gray-800 hover:bg-gray-700 rounded-lg"
                 >
                   Salvar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Venda */}
+      {modalVendaAberto && estoqueVendendo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Realizar Venda</h2>
+            <form onSubmit={handleConfirmarVenda}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Produto</label>
+                  <input
+                    type="text"
+                    value={getProdutoInfo().desc_produto}
+                    className="w-full p-2 border rounded-lg bg-gray-100"
+                    readOnly
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Quantidade Disponível</label>
+                  <input
+                    type="text"
+                    value={estoqueVendendo?.qtd_disponivel || 0}
+                    className="w-full p-2 border rounded-lg bg-gray-100"
+                    readOnly
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Quantidade Mínima</label>
+                  <input
+                    type="text"
+                    value={estoqueVendendo?.qtd_min || 0}
+                    className="w-full p-2 border rounded-lg bg-gray-100"
+                    readOnly
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Valor Unitário</label>
+                  <input
+                    type="text"
+                    value={`R$ ${getProdutoInfo().valor_produto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    className="w-full p-2 border rounded-lg bg-gray-100"
+                    readOnly
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Quantidade a Vender</label>
+                  <input
+                    type="number"
+                    name="quantidade"
+                    value={formVenda.quantidade}
+                    onChange={handleVendaChange}
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
+                    required
+                    min="1"
+                    max={estoqueVendendo?.qtd_disponivel || 0}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Valor Total</label>
+                  <input
+                    type="text"
+                    value={`R$ ${formVenda.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    className="w-full p-2 border rounded-lg bg-gray-100"
+                    readOnly
+                  />
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={handleCancelarVenda}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg"
+                >
+                  Confirmar Venda
                 </button>
               </div>
             </form>
