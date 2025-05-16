@@ -21,8 +21,8 @@ export default function AdminLogin() {
     e.preventDefault();
 
     let response = await ax.get('http://localhost:8080/usuario/1');
-    let usuaioAdmin = response.data[0];
-    
+    let usuaioAdmin = response.data[0]; 
+
     if (formData.email === usuaioAdmin.email_usuario && formData.senha === usuaioAdmin.senha_usuario) {
       localStorage.setItem('adminAuthenticated', 'true');
       navigate('/admin/produtos');

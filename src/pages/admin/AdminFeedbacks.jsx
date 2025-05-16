@@ -50,15 +50,6 @@ export default function AdminFeedbacks() {
 
   return (
     <div className="p-6">
-      {/* Botão Voltar */}
-      <button
-        onClick={() => navigate('/')}
-        className="mb-4 bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-700 transition-colors"
-      >
-        <FaArrowLeft />
-        Voltar à Página Inicial
-      </button>
-
       {/* Filtros */}
       <div className="bg-white p-4 rounded-lg shadow mb-6">
         <div className="grid grid-cols-1 gap-4">
