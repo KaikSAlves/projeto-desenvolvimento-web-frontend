@@ -248,7 +248,18 @@ export default function AdminEstoque() {
       data_atualizacao:  new Date().toISOString().slice(0, 19).replace('T', ' ')
     };
 
+    const venda = {
+      id_estoque: estoqueVendendo.id_estoque,
+      qtd_total: quantidade,
+      valor_total: formVenda.valor_total,
+      data_venda:  new Date().toISOString().slice(0, 19).replace('T', ' ')
+    };
+
     await ax.put(`http://localhost:8080/estoque/${estoqueVendendo.id_estoque}`, estoqueAtualizado);
+    console.log("Estoque atualizado!");
+
+    await ax.post(`http://localhost:8080/vendas`, venda);
+    console.log("Venda registrada!");
 
     setEstoques(prev => prev.map(e =>
       e.id_estoque === estoqueVendendo.id_estoque ? estoqueAtualizado : e
