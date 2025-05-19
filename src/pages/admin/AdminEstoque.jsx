@@ -29,28 +29,25 @@ export default function AdminEstoque() {
     valor_total: 0
   });
 
-  // Atualiza o localStorage sempre que os estoques mudarem
-  useEffect(() => {
-    async function carregarEstoques() {
-      try {
-        const response = await ax.get('http://localhost:8080/estoque');
-        const produtosResponse = await ax.get('http://localhost:8080/produto');
-
-        if (response.data && produtosResponse.data) {
-          setEstoques(response.data);
-          setProdutos(produtosResponse.data);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        Swal.fire({
-          title: 'Erro!',
-          text: 'Não foi possível carregar os dados. Por favor, tente novamente.',
-          icon: 'error',
-          confirmButtonText: 'Ok'
-        });
-      }
+  async function carregarEstoquesEProdutos() {
+    try {
+      const response = await ax.get('http://localhost:8080/estoque');
+      const produtosResponse = await ax.get('http://localhost:8080/produto');
+      setEstoques(response.data);
+      setProdutos(produtosResponse.data);
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Não foi possível carregar os dados. Por favor, tente novamente.',
+        icon: 'error',
+        confirmButtonText: 'Ok'
+      });
     }
-    carregarEstoques();
+  }
+
+  useEffect(() => {
+    carregarEstoquesEProdutos();
   }, []);
 
   const handleFiltroChange = (e) => {
@@ -60,12 +57,10 @@ export default function AdminEstoque() {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'produtoId') {
-      const produtoSelecionado = produtos.find(p => p.id === parseInt(value));
+    if (name === 'id_produto') {
       setFormData(prev => ({
         ...prev,
-        id_estoque: value,
-        id_produto: produtoSelecionado ? produtoSelecionado.id_produto : ''
+        id_produto: value
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -85,15 +80,23 @@ export default function AdminEstoque() {
   };
 
   const handleDeletar = async (id) => {
-    await ax.delete(`http://localhost:8080/estoque/${id}`);
-    setEstoques(prev => prev.filter(e => e.id_estoque !== id));
-
-    Swal.fire({
-      title: 'Sucesso!',
-      text: `O Estoque ${id} foi deletado com sucesso!`,
-      icon: 'success',
-      confirmButtonText: 'Ok'
-    });
+    try {
+      const response = await ax.delete(`http://localhost:8080/estoque/${id}`);
+      setEstoques(prev => prev.filter(e => e.id_estoque !== id));
+      Swal.fire({
+        title: 'Sucesso!',
+        text: `O Estoque ${id} foi deletado com sucesso!`,
+        icon: 'success',
+        confirmButtonText: 'Ok'
+      });
+    } catch (error) {
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Não é possível excluir este estoque pois ele está vinculado a vendas já realizadas.',
+        icon: 'error',
+        confirmButtonText: 'Ok'
+      });
+    }
   };
 
   const handleSalvar = async (e) => {
@@ -132,10 +135,7 @@ export default function AdminEstoque() {
       };
 
       await ax.put(`http://localhost:8080/estoque/${estoqueEditando.id_estoque}`, estoqueAtualizado);
-
-      setEstoques(prev => prev.map(e =>
-        e.id_estoque === estoqueEditando.id_estoque ? { ...formData, id_estoque: estoqueEditando.id_estoque } : e
-      ));
+      await carregarEstoquesEProdutos();
 
       Swal.fire({
         title: 'Sucesso!',
@@ -145,16 +145,22 @@ export default function AdminEstoque() {
       });
     } else {
       const novoEstoque = {
-        id_estoque: '',
-        data_atualizacao,
-        ...formData,
+        id_produto: formData.id_produto,
+        qtd_disponivel: formData.qtd_disponivel,
+        qtd_min: formData.qtd_min,
+        data_atualizacao
       };
+
       const response = await ax.post('http://localhost:8080/estoque', novoEstoque);
-      novoEstoque.id_estoque = response.data.id;
-      setEstoques(prev => [...prev, { ...formData, id_estoque: novoEstoque.id_estoque }]);
+      const estoqueCriado = {
+        ...novoEstoque,
+        id_estoque: response.data.id || response.data.id_estoque
+      };
+      await carregarEstoquesEProdutos();
+
       Swal.fire({
         title: 'Sucesso!',
-        text: `O Estoque ${novoEstoque.id_estoque} criado!`,
+        text: `O Estoque ${estoqueCriado.id_estoque} foi criado!`,
         icon: 'success',
         confirmButtonText: 'Ok'
       });
@@ -197,7 +203,7 @@ export default function AdminEstoque() {
     const quantidade = parseInt(value) || 0;
     
     if (!estoqueVendendo || !produtos) return;
-    const produto = produtos.find(p => p.id_produto === estoqueVendendo.id_produto);
+    const produto = produtos.find(p => String(p.id_produto) === String(estoqueVendendo.id_produto));
     const valor_total = quantidade * (produto?.valor_produto || 0);
 
     setFormVenda({
@@ -258,14 +264,8 @@ export default function AdminEstoque() {
     };
 
     await ax.post(`http://localhost:8080/vendas`, venda);
-    console.log("Venda registrada!");
-
     await ax.put(`http://localhost:8080/estoque/${estoqueVendendo.id_estoque}`, estoqueAtualizado);
-    console.log("Estoque atualizado!");
-
-    setEstoques(prev => prev.map(e =>
-      e.id_estoque === estoqueVendendo.id_estoque ? estoqueAtualizado : e
-    ));
+    await carregarEstoquesEProdutos();
 
     Swal.fire({
       title: 'Sucesso!',
@@ -293,7 +293,7 @@ export default function AdminEstoque() {
 
   const getProdutoInfo = () => {
     if (!estoqueVendendo || !produtos) return { desc_produto: '', valor_produto: 0 };
-    const produto = produtos.find(p => p.id_produto === estoqueVendendo.id_produto);
+    const produto = produtos.find(p => String(p.id_produto) === String(estoqueVendendo.id_produto));
     return {
       desc_produto: produto?.desc_produto || '',
       valor_produto: produto?.valor_produto || 0
@@ -604,4 +604,4 @@ export default function AdminEstoque() {
       )}
     </div>
   );
-} 
+}

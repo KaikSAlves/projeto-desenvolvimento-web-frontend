@@ -4,6 +4,7 @@ import AdminLogin from '../pages/admin/AdminLogin';
 import AdminProdutos from '../pages/admin/AdminProdutos';
 import AdminEstoque from '../pages/admin/AdminEstoque';
 import AdminFeedbacks from '../pages/admin/AdminFeedbacks';
+import AdminRelatorios from '../pages/admin/AdminRelatorios';
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
       {
         path: 'feedbacks',
         element: <AdminFeedbacks />
+      },
+      {
+        path: 'relatorios',
+        element: <AdminRelatorios />
       }
     ]
   }

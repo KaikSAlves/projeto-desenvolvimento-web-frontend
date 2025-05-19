@@ -6,6 +6,7 @@ import AdminLayout from './components/AdminLayout';
 import AdminEstoque from './pages/admin/AdminEstoque';
 import AdminProdutos from './pages/admin/AdminProdutos';
 import AdminFeedbacks from './pages/admin/AdminFeedbacks';
+import AdminRelatorios from './pages/admin/AdminRelatorios';
 
 // Componente de proteção de rota
 const ProtectedRoute = ({ children }) => {
@@ -33,6 +34,7 @@ function App() {
             <Route path="estoque" element={<AdminEstoque />} />
             <Route path="produtos" element={<AdminProdutos />} />
             <Route path="feedbacks" element={<AdminFeedbacks />} />
+            <Route path="relatorios" element={<AdminRelatorios/>} />
           </Route>
         </Routes>
       </div>

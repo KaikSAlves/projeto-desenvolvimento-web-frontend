@@ -1,7 +1,6 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-import { FaBox, FaIceCream, FaComments, FaSignOutAlt} from 'react-icons/fa';
-import { VscReport } from "react-icons/vsc";
+import { FaBox, FaIceCream, FaComments, FaSignOutAlt, FaChartBar } from 'react-icons/fa';
 
 const AdminLayout = () => {
   const navigate = useNavigate();
@@ -75,18 +74,19 @@ const AdminLayout = () => {
                 Feedbacks
               </button>
             </li>
-            <button
-            onClick={() => navigate('/admin/relatorios')}
-            className={`w-full p-3 rounded-lg transition-colors flex items-center gap-3 ${
-              isActiveRoute('/admin/relatorios')
-                ? 'bg-gray-700 text-white'
-                : 'text-gray-300 hover:bg-gray-700'
-            }`}
-            >
-              <VscReport className="text-lg" />
-              Relatórios
-            
-            </button>
+            <li>
+              <button
+                onClick={() => navigate('/admin/relatorios')}
+                className={`w-full p-3 rounded-lg transition-colors flex items-center gap-3 ${
+                  isActiveRoute('/admin/relatorios')
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-300 hover:bg-gray-700'
+                }`}
+              >
+                <FaChartBar className="text-lg" />
+                Relatórios
+              </button>
+            </li>
           </ul>
         </nav>
 
