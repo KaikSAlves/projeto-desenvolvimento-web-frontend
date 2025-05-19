@@ -242,11 +242,7 @@ export default function AdminEstoque() {
       return;
     }
 
-    const estoqueAtualizado = {
-      ...estoqueVendendo,
-      qtd_disponivel: novaQuantidade,
-      data_atualizacao:  new Date().toISOString().slice(0, 19).replace('T', ' ')
-    };
+    
 
     const venda = {
       id_estoque: estoqueVendendo.id_estoque,
@@ -255,11 +251,17 @@ export default function AdminEstoque() {
       data_venda:  new Date().toISOString().slice(0, 19).replace('T', ' ')
     };
 
-    await ax.put(`http://localhost:8080/estoque/${estoqueVendendo.id_estoque}`, estoqueAtualizado);
-    console.log("Estoque atualizado!");
+    const estoqueAtualizado = {
+      ...estoqueVendendo,
+      qtd_disponivel: novaQuantidade,
+      data_atualizacao:  new Date().toISOString().slice(0, 19).replace('T', ' ')
+    };
 
     await ax.post(`http://localhost:8080/vendas`, venda);
     console.log("Venda registrada!");
+
+    await ax.put(`http://localhost:8080/estoque/${estoqueVendendo.id_estoque}`, estoqueAtualizado);
+    console.log("Estoque atualizado!");
 
     setEstoques(prev => prev.map(e =>
       e.id_estoque === estoqueVendendo.id_estoque ? estoqueAtualizado : e
